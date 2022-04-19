@@ -31,7 +31,14 @@ contract TollCoin is ERC20Token {
         address userAd;
         bool userExist;
     }
-    uint256[] tollReceipts;
+
+    struct receipt{
+        string vehicleNum;
+        string name;
+        string contractorName;
+        uint256 tokenAmount;
+    }
+    receipt[] tollReceipts;
 
     mapping(address=>user) public UsersReg;
     mapping(address=>contractor) public ContractorsReg;
@@ -122,7 +129,7 @@ contract TollCoin is ERC20Token {
         transferFrom(_user,_cont,amount);
         UsersReg[_user].userBalance=balanceOf(_user);
         ContractorsReg[_cont].cBalance=balanceOf(_cont);
-        uint256 _tollReceipt = uint256(keccak256(abi.encodePacked(_user, block.timestamp))) % 100000000000;
+        receipt memory _tollReceipt = receipt(UsersReg[_user].vehicleNum,UsersReg[_user].userName,ContractorsReg[_cont].contractorName,amount);
         tollReceipts.push(_tollReceipt);
         return true;
     }
@@ -138,13 +145,17 @@ contract TollCoin is ERC20Token {
     }
 
     function rfidUserId(string memory rfidCode) public view returns(address){
-        require(keccak256(abi.encodePacked((rfidCode))) == keccak256(abi.encodePacked((""))),"RFID code is not valid");
+        //require(keccak256(abi.encodePacked((rfidCode))) == keccak256(abi.encodePacked((""))),"RFID code is not valid");
         require(rfidMap[rfidCode].userExist==true,"Invalid user");
         return rfidMap[rfidCode].userAd;
     }
 
     function contractorExists(address _contAdd) public view returns(bool){
         return ContractorsReg[_contAdd].cExists;
+    }
+
+    function getTransactionList() public view onlyOwner returns(receipt[] memory){
+        return tollReceipts;
     }
 
 }

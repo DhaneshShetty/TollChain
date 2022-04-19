@@ -17,7 +17,7 @@ if (typeof web3 !== 'undefined') {
     var web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'))
 }
 
-const contractAdd="0x9DF96aA231491B774a2A9f38fBB0E1574ad3243d";
+const contractAdd="0xB9bF025560B429e1619e05a918805F267ab2fDD6";
 var contract= new web3.eth.Contract(abi,contractAdd);
 console.log('Server started in http://localhost:3000 in browser');
 
@@ -197,6 +197,26 @@ app.get('/balance',async function(req,res){
         res.status(404).json({success:false,message:err.message});
     }
 })
+
+
+app.get('/transactions',async function(req,res){
+    try{
+        await contract.methods.getTransactionList().call().then(function(value){
+            res.status(200).json({transactions:value});
+        }).catch(e=>{
+            const data = e.data;
+            const txHash = Object.keys(data)[0];
+            const reason = data[txHash].reason;        
+            console.log(e);
+            res.status(404).json({ success: false, error: reason });
+        });
+
+    }
+    catch(err){
+        res.status(404).json({success:false,message:err.message});
+    }
+
+});
 
 app.get('/',function(req,res){
     res.send("Success");
